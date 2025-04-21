@@ -1,0 +1,29 @@
+# Crear una carpeta en el servidor primario
+mkdir directorio
+
+# Crear 100 archivos dentro de la carpeta utilizando un bucle con el comando `touch`
+for i in {1..100}; do touch home/alvin2/directorio/archivo$i.txt; done
+
+rsync -avz /home/alvin2/directorio/ junior@192.168.100.121:/home/junior/recibiendo/
+
+#Crear un script para la sincronización
+
+nano /ruta/a/tu/script_sync.sh
+
+Añade el siguiente contenido al script:
+
+#!/bin/bash
+
+# Comando rsync para sincronizar la carpeta
+rsync -avz /ruta/a/tu/carpeta/ usuario_remoto@192.168.1.2:/ruta/remota/carpeta/
+
+#Haz el script ejecutable:
+chmod +x /ruta/a/tu/script_sync.sh
+
+#Edita el crontab para el usuario que ejecutará el script:
+
+crontab -e
+Añade la siguiente línea al crontab para ejecutar el script cada 1 minuto:
+
+
+* * * * * /ruta/a/tu/script_sync.sh
