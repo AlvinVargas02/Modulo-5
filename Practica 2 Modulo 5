@@ -1,0 +1,46 @@
+# Habilita el repositorio de alta disponibilidad
+sudo dnf config-manager --set-enabled highavailability  
+
+# Instala Pacemaker
+sudo dnf install pacemaker -y  
+
+# Abre los puertos del firewall necesarios
+sudo firewall-cmd --permanent --add-service=high-availability  
+sudo firewall-cmd --reload  
+
+# Instala pcs (herramienta de gestión del clúster)
+sudo dnf install pcs -y  
+
+# Activa el servicio pcsd
+sudo systemctl enable pcsd --now  
+
+# Establece la contraseña del usuario del clúster
+echo "12345" | sudo passwd --stdin hacluster  
+
+________________________
+Ahora, una vez hecho en ambos nodos, sigue con la configuración del clúster (haz esto desde el nodo principal alvin2):
+
+
+# Autenticación entre nodos (Colocar ip de ambas maquinas)
+sudo pcs host auth alvin2 addr=192.168.100.81 junior addr=192.168.100.121 -u hacluster
+
+# Configuración del clúster (Colocar ip de ambas maquinas)
+sudo pcs cluster setup pacemaker1 alvin2 addr=192.168.100.81 junior addr=192.168.100.121
+
+# Iniciar el clúster en ambos nodos
+sudo pcs cluster start --all  
+
+sudo systemctl start pacemaker.service  
+
+# Habilitar el clúster para que inicie con el sistema
+sudo pcs cluster enable --all  
+
+# (Recomendado) Asegúrate que el servicio pacemaker esté activo
+sudo systemctl enable pacemaker.service
+sudo systemctl start pacemaker.service
+
+# Deshabilitar STONITH para simplificar (importante en pruebas locales)
+sudo pcs property set stonith-enabled=false
+
+(Aca colocamos la ip flotante)
+sudo pcs resource create ClusterIP ocf:heartbeat:IPaddr2 ip=192.168.100.200 cidr_netmask=24 op monitor interval=30s
